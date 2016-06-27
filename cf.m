@@ -22,7 +22,6 @@ sample_X = [
     1; % some secondary
     0; % some college
     
-    1; % SP
     0; % CTB
     0; % BH
     0; % REC
