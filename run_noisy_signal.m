@@ -46,8 +46,8 @@ Data.X      = X;
 theta0 = [
     
   -11.6368
-    0; 0 ;-0.1463; 0.0712; 0.0545; -0.0651; -0.1183; -0.1861; 0.1345; 0.1535; -0.5606; -0.3182; 0.0004;
-    0; 0; -0.1754; 0.2048; 0.3616; 0.5264; -0.0444; 0.0553; 0.4594; 0.1821; -0.0853; -0.2577; -1.6558;
+    0; 0 ;-0.1463; 0.0712; 0.0545; -0.0651; -0.1183; -0.1861; 0; 0; 0; 0.0004;
+    0; 0; -0.1754; 0.2048; 0.3616; 0.5264; -0.0444; 0.0553; 0; 0; 0; -1.6558;
     0.7157; 0.9788;
     0.8745; 0.5164; 1.0057;
     0.9264; 0.4220; 1.0228;
@@ -72,12 +72,13 @@ theta0 = [
 %     1; 0; 1
     ];
 
-options1 = optimset('MaxIter', 2000, 'Display', 'iter');
+options1 = optimset('MaxIter', 500, 'Display', 'iter');
 options = optimoptions('fminunc', 'MaxIter', 10000, 'MaxFunEvals', 10000, 'Display', 'iter', 'FinDiffType', 'central');
 
 % run optimize multiple times to fine tune the solutions
+theta = theta0;
 for i=1:5
-    [theta] = fminsearch(@(x) nloglf(x,Data,n), theta0, options1);
+    [theta] = fminsearch(@(x) nloglf(x,Data,n), theta, options1);
     [theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
 end
 
@@ -135,43 +136,50 @@ end
 
 %% Average Marginal Effect
 
-priceME = marginalPriceEffect(theta, Data, n);
-varPriceME = covf(theta, @(x) marginalPriceEffect(x, Data, n), cov, size(priceME));
+mfx = @(x) marginalPriceEffect(x, Data, n);
+priceME = mfx(theta);
+varPriceME = covf(theta, mfx, cov, size(priceME));
 
 offset = 1;
-carPriceME = marginalXEffect(theta, Data, n, offset, offset);
-varCarPriceME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(carPriceME));
+mfx = @(x) marginalXEffect(x, Data, n, offset, offset);
+carPriceME = mfx(theta);
+varCarPriceME = covf(theta, mfx, cov, size(carPriceME));
 
 offset = offset + 1;
-carUsageME = marginalXEffect(theta, Data, n, offset, offset);
-varCarUsageME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(carUsageME));
+mfx = @(x) marginalXEffect(x, Data, n, offset, offset);
+carUsageME = mfx(theta);
+varCarUsageME = covf(theta, mfx, cov, size(carUsageME));
 
 offset = offset + 1;
-genderME = marginalXEffect(theta, Data, n, offset, offset);
-varGenderME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(genderME));
+mfx = @(x) marginalXEffect(x, Data, n, offset, offset);
+genderME = mfx(theta);
+varGenderME = covf(theta, @(x) mfx, cov, size(genderME));
 
 ageME = zeros(n.choice, 3);
 varAgeME = zeros(n.choice, 3);
 for group = 1:3
-    ageME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:3+offset);
-    varAgeME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:3+offset), cov, size(ageME(:,group)));
+    mfx = @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:3+offset);
+    ageME(:,group) = mfx(theta);
+    varAgeME(:,group) = covf(theta, mfx, cov, size(ageME(:,group)));
 end
 
 offset = offset + 3;
 educationME = zeros(n.choice, 2);
 varEducationME = zeros(n.choice, 2);
 for group = 1:2
-    educationME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:2+offset);
-    varEducationME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:2+offset), cov, size(varEducationME(:,group)));
+    mfx = @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:2+offset);
+    educationME(:,group) = mfx(theta);
+    varEducationME(:,group) = covf(theta, mfx, cov, size(varEducationME(:,group)));
 end
 
 offset = offset + 2;
 
-cityME = zeros(n.choice, 4);
-varCityME = zeros(n.choice, 4);
+cityME = zeros(n.choice, 3);
+varCityME = zeros(n.choice, 3);
 for group = 1:4
-    cityME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:4+offset);
-    varCityME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:4+offset), cov, size(cityME(:,group)));
+    mfx = @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:3+offset);
+    cityME(:,group) = mfx(theta);
+    varCityME(:,group) = covf(theta, mfx, cov, size(cityME(:,group)));
 end
 
 allME = [priceME carPriceME' carUsageME' genderME' ageME educationME cityME]';
