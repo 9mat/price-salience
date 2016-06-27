@@ -1,3 +1,5 @@
+diary log.txt;
+diary on;
 dataStruct = importdata('../data/data_new.csv');
 
 data = dataStruct.data;
@@ -7,7 +9,7 @@ treat   = data(:,2)+1;
 choice  = data(:,3);
 price   = data(:,4:5);
 demogr  = data(:,6:5);
-X       = data(:,8:end);
+X       = data(:,6:end);
 X(:,end+1) = 1; % const
 
 n.demogr = size(demogr, 2);
@@ -42,35 +44,42 @@ Data.X      = X;
 
 %% Estimation
 theta0 = [
-    -10; 
-    % demogr
-    %0; 0; 
-  
-    % beta ethanol
-    0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0;
     
-    % beta midgrade gasoline
-    0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0;
+  -11.6368
+    0; 0 ;-0.1463; 0.0712; 0.0545; -0.0651; -0.1183; -0.1861; 0.1345; 0.1535; -0.5606; -0.3182; 0.0004;
+    0; 0; -0.1754; 0.2048; 0.3616; 0.5264; -0.0444; 0.0553; 0.4594; 0.1821; -0.0853; -0.2577; -1.6558;
+    0.7157; 0.9788;
+    0.8745; 0.5164; 1.0057;
+    0.9264; 0.4220; 1.0228;
     
-    % sigma control
-    0; 1; 
-
-    % sigma treat1
-    1; 0; 1
-    
-    % sigma treat2
-    1; 0; 1
+%     -10; 
+%     % demogr
+%     %0; 0; 
+%   
+%     % beta ethanol
+%     0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0;
+%     
+%     % beta midgrade gasoline
+%     0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0;
+%     
+%     % sigma control
+%     0; 1; 
+% 
+%     % sigma treat1
+%     1; 0; 1
+%     
+%     % sigma treat2
+%     1; 0; 1
     ];
 
 options1 = optimset('MaxIter', 2000, 'Display', 'iter');
 options = optimoptions('fminunc', 'MaxIter', 10000, 'MaxFunEvals', 10000, 'Display', 'iter', 'FinDiffType', 'central');
-[theta] = fminsearch(@(x) nloglf(x,Data,n), theta0, options1);
-[theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
-[theta] = fminsearch(@(x) nloglf(x,Data,n), theta, options1);
-[theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
-[theta] = fminsearch(@(x) nloglf(x,Data,n), theta, options1);
-[theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
-[theta] = fminsearch(@(x) nloglf(x,Data,n), theta, options1);
+
+% run optimize multiple times to fine tune the solutions
+for i=1:5
+    [theta] = fminsearch(@(x) nloglf(x,Data,n), theta0, options1);
+    [theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
+end
 
 %%
 
@@ -129,32 +138,44 @@ end
 priceME = marginalPriceEffect(theta, Data, n);
 varPriceME = covf(theta, @(x) marginalPriceEffect(x, Data, n), cov, size(priceME));
 
-genderME = marginalXEffect(theta, Data, n, 1,1);
-varGenderME = covf(theta, @(x) marginalXEffect(x, Data, n, 1, 1), cov, size(genderME));
+offset = 1;
+carPriceME = marginalXEffect(theta, Data, n, offset, offset);
+varCarPriceME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(carPriceME));
+
+offset = offset + 1;
+carUsageME = marginalXEffect(theta, Data, n, offset, offset);
+varCarUsageME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(carUsageME));
+
+offset = offset + 1;
+genderME = marginalXEffect(theta, Data, n, offset, offset);
+varGenderME = covf(theta, @(x) marginalXEffect(x, Data, n, offset, offset), cov, size(genderME));
 
 ageME = zeros(n.choice, 3);
 varAgeME = zeros(n.choice, 3);
 for group = 1:3
-    ageME(:,group) = marginalXEffect(theta, Data, n, group + 1, 2:4);
-    varAgeME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + 1, 2:4), cov, size(ageME(:,group)));
+    ageME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:3+offset);
+    varAgeME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:3+offset), cov, size(ageME(:,group)));
 end
 
+offset = offset + 3;
 educationME = zeros(n.choice, 2);
 varEducationME = zeros(n.choice, 2);
 for group = 1:2
-    educationME(:,group) = marginalXEffect(theta, Data, n, group + 4, 5:6);
-    varEducationME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + 4, 5:6), cov, size(varEducationME(:,group)));
+    educationME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:2+offset);
+    varEducationME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:2+offset), cov, size(varEducationME(:,group)));
 end
+
+offset = offset + 2;
 
 cityME = zeros(n.choice, 4);
 varCityME = zeros(n.choice, 4);
 for group = 1:4
-    cityME(:,group) = marginalXEffect(theta, Data, n, group + 6, 7:10);
-    varCityME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + 6, 7:10), cov, size(cityME(:,group)));
+    cityME(:,group) = marginalXEffect(theta, Data, n, group + offset, 1+offset:4+offset);
+    varCityME(:,group) = covf(theta, @(x) marginalXEffect(x, Data, n, group + offset, 1+offset:4+offset), cov, size(cityME(:,group)));
 end
 
-allME = [priceME genderME' ageME educationME cityME]';
-allSeME = sqrt([varPriceME varGenderME' varAgeME varEducationME varCityME])';
+allME = [priceME carPriceME' carUsageME' genderME' ageME educationME cityME]';
+allSeME = sqrt([varPriceME varCarPriceME' varCarUsageME' varGenderME' varAgeME varEducationME varCityME])';
 allTME = allME./allSeME;
 
 %% Counterfactual
@@ -197,3 +218,5 @@ legend('0.8', '0.7', '0.6', '0.5');
 xlabel('adjusted fuel price per km travelled (R$/km)');
 ylabel('difference in prob choosing ethanol');
 saveTightFigure(fig2,'../report/cf2.pdf');
+
+diary off;

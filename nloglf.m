@@ -7,6 +7,7 @@ if any(isnan(likelihood))
     return;
 end
 
-likelihood(likelihood<1e-100) = 1e-100;
-f = -sum(log(likelihood));
+loglf = log(likelihood);
+loglf(likelihood<1e-100) = -1e6;
+f = -sum(loglf);
 end

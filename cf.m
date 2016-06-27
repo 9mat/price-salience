@@ -12,6 +12,9 @@ sample_demogr = [
 sample_X = [
     0; % male
     
+    0; % not top 75 pctile car price
+    0; % not top 75 pctile car usage
+    
     1; % age 25-40;
     0; % age 40-65
     0; % age > 65
