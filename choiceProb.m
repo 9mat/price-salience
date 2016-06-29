@@ -22,7 +22,12 @@ for choice = 1:n.choice
     for treat = 1:n.treat
         index = (Data.choice == choice) & (Data.treat == treat);
         S = n.M(:,:,choice)*params.S(:,:,treat);
-        prob(index) = mvncdf(-V(index,:), zeros(1, n.choice-1), S*S');
+        try
+            prob(index) = mvncdf(-V(index,:), zeros(1, n.choice-1), S*S');
+        catch
+            fprintf('error: probably singular S*S\n');
+            prob(index) = 0;
+        end
     end
 end
 

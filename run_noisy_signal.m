@@ -77,9 +77,10 @@ options = optimoptions('fminunc', 'MaxIter', 10000, 'MaxFunEvals', 10000, 'Displ
 
 % run optimize multiple times to fine tune the solutions
 theta = theta0;
-for i=1:5
-    [theta] = fminsearch(@(x) nloglf(x,Data,n), theta, options1);
-    [theta] = fminunc(@(x) nloglf(x,Data,n), theta, options);
+f = @(x) nloglf(x, Data, n);
+for i=1:1
+%     [theta] = fmincustom('fminsearch', f, theta);
+    [theta] = fmincustom('optitoolbox', f, theta);
 end
 
 %%
@@ -153,7 +154,7 @@ varCarUsageME = covf(theta, mfx, cov, size(carUsageME));
 offset = offset + 1;
 mfx = @(x) marginalXEffect(x, Data, n, offset, offset);
 genderME = mfx(theta);
-varGenderME = covf(theta, @(x) mfx, cov, size(genderME));
+varGenderME = covf(theta, mfx, cov, size(genderME));
 
 ageME = zeros(n.choice, 3);
 varAgeME = zeros(n.choice, 3);
