@@ -39,6 +39,7 @@ Data.treat      = 2*ones(n.choice*nprices,1);
 Data.price      = repmat(price, n.choice, 1);
 Data.demogr     = repmat(sample_demogr', n.choice*nprices, 1);
 Data.X          = repmat(sample_X', n.choice*nprices, 1);
+Data.choiceset  = true(size(Data.X,1), n.choice-1);
 
 offset = 1 + n.gamma + n.beta;
 s = [1;theta(offset + 1: offset + n.sigma-1)];

@@ -40,6 +40,7 @@ Data.treat      = repmat(reshape(repmat(1:n.treat,nprices,1), nprices*n.treat, 1
 Data.price      = repmat(price, n.choice*n.treat, 1);
 Data.demogr     = repmat(sample_demogr', n.choice*n.treat*nprices, 1);
 Data.X          = repmat(sample_X', n.choice*n.treat*nprices, 1);
+Data.choiceset  = true(size(Data.X,1), n.choice-1);
 
 prob = choiceProb(theta, Data, n);
 prob = reshape(prob, nprices, n.treat*n.choice);
