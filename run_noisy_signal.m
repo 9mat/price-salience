@@ -24,6 +24,21 @@ n.sigma  = n.choice*(n.choice-1)/2;
 
 
 price = price(:, 1:n.choice-1);
+choiceset = ~isnan(price);
+
+price(isnan(price)) = 100000;
+
+% make sure that choice sets contain actual choice
+for i = 1:n.choice-1
+    assert(all(choiceset(choice == i+1,i)), ['choice ' num2str(i+1) 'not in choice set']);
+end
+
+% change the "base" choice to the actual choice
+choiceset = [true(size(choiceset,1), 1) choiceset];
+to_drop = false(size(choiceset));
+for i = 1:n.choice; to_drop(:,i) = choice == i; end;
+choiceset(to_drop) = [];
+choiceset = reshape(choiceset, n.obs, n.choice-1);
 
 % matrix to change the base alternative (from the default 1 to i)
 M = zeros(n.choice-1,n.choice-1,n.choice);
@@ -41,6 +56,7 @@ Data.choice = choice;
 Data.price  = price;
 Data.demogr = demogr;
 Data.X      = X;
+Data.choiceset = choiceset;
 
 %% Estimation
 theta0 = [
