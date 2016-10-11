@@ -1,5 +1,6 @@
 diary log.txt;
 diary on;
+output = './results/result.mat';
 dataStruct = importdata('../data/data_new.csv');
 
 data = dataStruct.data;
@@ -85,6 +86,11 @@ for i=1:1
 end
 
 %%
+fprintf('Estimation finished!\n\n');
+
+save(output);
+
+%%
 
 cov = mlecov(theta, Data, 'nloglf', @(x,d,a,b) nloglf(x,d,n));
 
@@ -115,6 +121,11 @@ for i=1:n.treat
     fprintf('Variance matrix for treatment group %d\n', i);
     display(params.S(:,:,i)*params.S(:,:,i)');
 end
+
+%%
+fprintf('Post-estimation finished!\n\n');
+
+save(output);
 
 %% bootstrap
 % rng('default');
