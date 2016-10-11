@@ -23,7 +23,7 @@ for choice = 1:n.choice
         index = (Data.choice == choice) & (Data.treat == treat);
         S = n.M(:,:,choice)*params.S(:,:,treat);
         try
-            prob(index) = mvncdf(-V(index,:), zeros(1, n.choice-1), S*S');
+            prob(index) = mvncdf(-V(index,:), zeros(1, n.choice-1), S*S', statset('TolFun', 1e-12));
         catch
             fprintf('error: probably singular S*S\n');
             prob(index) = 0;

@@ -24,6 +24,7 @@ n.sigma  = n.choice*(n.choice-1)/2;
 
 
 price = price(:, 1:n.choice-1);
+price(isnan(price)) = 1e4;
 
 % matrix to change the base alternative (from the default 1 to i)
 M = zeros(n.choice-1,n.choice-1,n.choice);
