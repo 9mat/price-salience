@@ -25,15 +25,18 @@ elseif strcmp(routine, 'optitoolbox')
     ub = ones(size(x0)) *5;
     lb(1) = -30; ub(1) = 30;
     
-    options = optiset('maxiter', 1000);
-    options = optiset(options, 'tolafun', 1e-6);
-    options = optiset(options, 'tolrfun', 1e-6);
-    options = optiset(options, 'display', 'iter');
-    options = optiset(options, 'maxtime', 1e3);
-    options = optiset(options, 'solver', 'ipopt');
+    funcs.objective = f;
+    funcs.gradient = @(x) finDiff(x, f);
     
-    Opt = opti('fun', f, 'bounds', lb, ub, 'x0', x0, 'options', options);
-    [theta, fval, exitFlag] = solve(Opt);
+    options.lb = lb;
+    options.ub = ub;
+    options.ipopt.hessian_approximation = 'limited-memory';
+    
+    % other options are in ipopt.opt
+    
+    [theta, info] = ipopt(x0, funcs, options);
+    fval = info.eval.objective;
+    exitFlag = info.status;
 end
 
 end
