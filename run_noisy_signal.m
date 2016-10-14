@@ -1,7 +1,7 @@
-diary log.txt;
+diary log_unstable.txt;
 diary on;
-output = './results/result.mat';
-dataStruct = importdata('../data/data_new.csv');
+output = './results/result_unstable.mat';
+dataStruct = importdata('../data/data_new_unstable.csv');
 
 data = dataStruct.data;
 header = dataStruct.colheaders;
