@@ -1,7 +1,14 @@
-diary log_unstable.txt;
-diary on;
+function run_noisy_signal(input, output, report)
+
+if nargin < 3
+report = './reports/log_unstable.txt';
 output = './results/result_unstable.mat';
-dataStruct = importdata('../data/data_new_unstable.csv');
+input = '../data/data_new_unstable.csv';
+end
+
+diary(report);
+diary on;
+dataStruct = importdata(input);
 
 data = dataStruct.data;
 header = dataStruct.colheaders;
