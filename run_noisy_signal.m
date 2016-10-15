@@ -1,4 +1,4 @@
-function run_noisy_signal(input, output, report)
+function run_noisy_signal(input, output, report, ipertube)
 
 if nargin < 3
 report = './reports/log_unstable.txt';
@@ -83,6 +83,16 @@ theta0 = [
 %     % sigma treat2
 %     1; 0; 1
     ];
+
+if nargin > 3
+    pertub = [3; ones(size(beta0)); ones(n.treat*n.sigma-1,1)];
+    rng('default');
+    if ischar(ipertube)
+        ipertube = str2double(ipertube);
+    end
+    rand(numel(theta0)*ipertube,1);
+    theta0 = theta0 + pertub.*(rand(size(theta0))-1)*2;
+end
 
 options1 = optimset('MaxIter', 500, 'Display', 'iter');
 options = optimoptions('fminunc', 'MaxIter', 10000, 'MaxFunEvals', 10000, 'Display', 'iter', 'FinDiffType', 'central');
