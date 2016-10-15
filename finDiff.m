@@ -23,6 +23,7 @@ for i=1:numel(theta)
     f_u = f(theta_u);
     
     grad(:, i) = (f_u(:) - f_l(:))/(theta_u(i) - theta_l(i));
+    grad(isnan(grad(:,i)),i) = 1e10*(-theta(i));
 end
 
 end
