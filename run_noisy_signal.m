@@ -152,6 +152,8 @@ fprintf('Post-estimation finished!\n\n');
 
 save(output);
 
+exit;
+
 %% bootstrap
 % rng('default');
 % nbstr = 1000;
