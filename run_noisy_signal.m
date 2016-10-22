@@ -1,4 +1,4 @@
-function run_noisy_signal(input, output, report, ipertube)
+function run_noisy_signal(input, output, report, theta0file, ipertube)
 
 if nargin < 3
 report = './reports/log_unstable.txt';
@@ -85,7 +85,12 @@ theta0 = [
     ];
 
 if nargin > 3
-    pertub = [3; ones(size(beta0)); ones(n.treat*n.sigma-1,1)];
+    theta0mat = load(theta0file);
+    theta0 = theta0mat.theta;
+end
+
+if nargin > 4
+    pertub = [3; 0.1*ones(size(beta0)); 0.2*ones(n.treat*n.sigma-1,1)];
     rng('default');
     if ischar(ipertube)
         ipertube = str2double(ipertube);
